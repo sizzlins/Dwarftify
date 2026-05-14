@@ -1,0 +1,8 @@
+[ID:sizzlins_dwarftify]
+[NUMERIC_VERSION:1]
+[DISPLAY_VERSION:1.0.0]
+[EARLIEST_COMPATIBLE_NUMERIC_VERSION:1]
+[EARLIEST_COMPATIBLE_DISPLAY_VERSION:1.0.0]
+[AUTHOR:sizzlin]
+[NAME:Dwarftify: Spotify-Style Music Player]
+[DESCRIPTION:A modern, Spotify-style music player for Dwarf Fortress that interfaces directly with the game's audio engine via DFHack. Allows you to play vanilla tracks, custom modded tracks, and ambient sounds with full playback controls and UI integration.]
