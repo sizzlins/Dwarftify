@@ -406,23 +406,20 @@ function Dwarftify:init()
                                 self:updateFilters()
                             end,
                         },
-                        widgets.HotkeyLabel{
+                        widgets.Label{
                             frame = {t = 2, l = 1},
-                            key = 'CUSTOM_1',
-                            label = '[1] Browse',
-                            on_activate = function() self:switchTab(1) end,
+                            text = '[1] Browse',
+                            on_click = function() self:switchTab(1) end,
                         },
-                        widgets.HotkeyLabel{
+                        widgets.Label{
                             frame = {t = 2, l = 20},
-                            key = 'CUSTOM_2',
-                            label = '[2] Queue',
-                            on_activate = function() self:switchTab(2) end,
+                            text = '[2] Queue',
+                            on_click = function() self:switchTab(2) end,
                         },
-                        widgets.HotkeyLabel{
+                        widgets.Label{
                             frame = {t = 2, l = 39},
-                            key = 'CUSTOM_3',
-                            label = '[3] Liked',
-                            on_activate = function() self:switchTab(3) end,
+                            text = '[3] Liked',
+                            on_click = function() self:switchTab(3) end,
                         },
                     }
                 },
@@ -752,6 +749,15 @@ function Dwarftify:onInput(keys)
         local next_tab = STATE.active_tab + 1
         if next_tab > 3 then next_tab = 1 end
         self:switchTab(next_tab)
+        return true
+    elseif keys._STRING == 49 then -- '1'
+        self:switchTab(1)
+        return true
+    elseif keys._STRING == 50 then -- '2'
+        self:switchTab(2)
+        return true
+    elseif keys._STRING == 51 then -- '3'
+        self:switchTab(3)
         return true
     end
     
