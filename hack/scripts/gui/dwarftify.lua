@@ -68,9 +68,22 @@ local function harvestMusic()
         for i = 0, #mall - 1 do
             local raw = mall[i]
             if raw then
+                local title = formatVanillaName(raw.token)
+                -- Try to find the real title from [FILE:TITLE]
+                if raw.current_definition then
+                    for j = 0, #raw.current_definition - 1 do
+                        local def = raw.current_definition[j].value
+                        local fname = def:match("%[FILE:(.+)%]")
+                        if fname then
+                            title = fname:gsub("_", " "):gsub("(%w)(%w*)", function(a, b) return a:upper() .. b:lower() end)
+                            break
+                        end
+                    end
+                end
+                
                 raws_by_id[raw.song] = {
                     id = raw.song,
-                    title = formatVanillaName(raw.token),
+                    title = title,
                     author = "Dwarf Fortress",
                     orig_id = raw.token
                 }
@@ -98,6 +111,15 @@ local function harvestMusic()
                         author = author,
                         orig_id = "Loaded Track #" .. s_id
                     }
+                end
+                
+                -- Cross-reference: If a raw track's title matches this loaded track's title, steal the author
+                if title then
+                    for _, raw_track in pairs(raws_by_id) do
+                        if raw_track.id < 120 and raw_track.title:upper() == title:upper() then
+                            raw_track.author = author
+                        end
+                    end
                 end
             end)
         end
@@ -146,6 +168,9 @@ REPEAT_MODE = REPEAT_MODE or 'all'
 local function setGameTrack(id)
     local m = df.global.musicsound
     if m then
+        -- Tell the DJ monitor this is OUR change, not DF's
+        dj_we_set_id = id
+        
         -- Aggressively clear the interlude queues so the engine doesn't play a card instead
         m.neutral_card_queue:resize(0)
         m.planned_cards:resize(0)
@@ -171,7 +196,6 @@ function playTrack(track, playlist, index)
         PLAYLIST_INDEX = 1
     end
     LAST_PLAYED_TRACK = track
-    dj_play_start_tick = dfhack.getTickCount()
     setGameTrack(track.id)
     
     if showToast then
@@ -271,38 +295,38 @@ end
 -- ===========================
 -- Background DJ Monitor
 -- ===========================
-local dj_last_song = nil
-local dj_debounce_count = 0
-local dj_play_start_tick = 0
-local dj_was_active = false
+local dj_last_song = nil          -- last song ID we observed
+local dj_we_set_id = nil          -- the song ID we last commanded via setGameTrack
+local dj_last_change_tick = 0     -- tick when we last saw a song change
+local DJ_COOLDOWN_MS = 3000       -- minimum ms between auto-advances
 
 local function djMonitorLoop()
     if not monitor_running then return end
     if not dfhack.isWorldLoaded() then monitor_running = false; return end
 
     local m = df.global.musicsound
-    if m then
+    if m and REPEAT_MODE ~= 'off' then
         local current_song = m.song
 
         if current_song ~= dj_last_song then
-            -- Track changed! Reset state.
-            dj_last_song = current_song
-            dj_play_start_tick = dfhack.getTickCount()
-            dj_debounce_count = 0
-            dj_was_active = m.music_active
-        else
-            -- Same track is playing.
-            if m.music_active then
-                dj_was_active = true
-                dj_debounce_count = 0
-            elseif dj_was_active and not m.music_active then
-                -- The track WAS active, but now it's NOT. It naturally finished!
-                dj_debounce_count = dj_debounce_count + 1
-                if dj_debounce_count >= 2 then
-                    dj_debounce_count = 0
-                    dj_was_active = false
-                    playNextTrack()
-                end
+            local now = dfhack.getTickCount()
+            local elapsed = now - dj_last_change_tick
+
+            -- Song changed. Was it us or DF?
+            if dj_we_set_id and current_song == dj_we_set_id then
+                -- This is our own setGameTrack taking effect. Just record it.
+                dj_last_song = current_song
+                dj_last_change_tick = now
+                dj_we_set_id = nil
+            elseif elapsed >= DJ_COOLDOWN_MS then
+                -- DF changed the song on its own (previous track finished).
+                -- Enough time has passed, safe to auto-advance.
+                dj_last_song = current_song
+                dj_last_change_tick = now
+                playNextTrack()
+            else
+                -- Song changed too fast. Just track it, don't advance.
+                dj_last_song = current_song
             end
         end
     end
@@ -314,9 +338,8 @@ function ensureMonitorRunning()
     if not monitor_running then
         monitor_running = true
         dj_last_song = nil
-        dj_debounce_count = 0
-        dj_play_start_tick = dfhack.getTickCount()
-        dj_was_active = false
+        dj_we_set_id = nil
+        dj_last_change_tick = dfhack.getTickCount()
         djMonitorLoop()
     end
 end
@@ -411,8 +434,8 @@ function Dwarftify:init()
                         },
                         -- Transport Row
                         widgets.HotkeyLabel{
-                            frame = {t = 4, l = 22},
-                            key = 'CUSTOM_Z',
+                            frame = {t = 4, l = 22, w = 14},
+                            key = 'CUSTOM_SHIFT_Z',
                             label = '|< [Prev]',
                             on_activate = function() playPrevTrack() end,
                         },
@@ -421,8 +444,8 @@ function Dwarftify:init()
                             text = {{text = '[ || PAUSE ]', pen = COLOR_WHITE}},
                         },
                         widgets.HotkeyLabel{
-                            frame = {t = 4, l = 53},
-                            key = 'CUSTOM_X',
+                            frame = {t = 4, l = 53, w = 14},
+                            key = 'CUSTOM_SHIFT_X',
                             label = '[Next] >|',
                             on_activate = function() playNextTrack() end,
                         },
