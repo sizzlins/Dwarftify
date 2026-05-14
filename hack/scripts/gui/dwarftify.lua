@@ -408,17 +408,17 @@ function Dwarftify:init()
                             end,
                         },
                         widgets.Label{
-                            frame = {t = 2, l = 1},
+                            frame = {t = 2, l = 1, w = 12},
                             text = '[1] Browse',
                             on_click = function() self:switchTab(1) end,
                         },
                         widgets.Label{
-                            frame = {t = 2, l = 20},
+                            frame = {t = 2, l = 20, w = 11},
                             text = '[2] Queue',
                             on_click = function() self:switchTab(2) end,
                         },
                         widgets.Label{
-                            frame = {t = 2, l = 39},
+                            frame = {t = 2, l = 39, w = 11},
                             text = '[3] Liked',
                             on_click = function() self:switchTab(3) end,
                         },
@@ -534,7 +534,13 @@ function Dwarftify:init()
                         },
                         widgets.Label{
                             frame = {t = 4, l = 2},
-                            text = "[Enter] Play Now  |  [Shift+Enter] Add to Queue  |  [Tab] Switch View",
+                            text = function()
+                                if STATE.active_tab == 2 then
+                                    return "[Enter] Play Now  |  [Shift+Enter] Remove from Queue  |  [Tab] Switch View"
+                                else
+                                    return "[Enter] Play Now  |  [Shift+Enter] Add to Queue  |  [Tab] Switch View"
+                                end
+                            end,
                             pen = COLOR_DARKGREY,
                         },
                         widgets.HotkeyLabel{
