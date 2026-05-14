@@ -129,6 +129,7 @@ local function harvestMusic()
     local sorted_authors = {}
     for author, tracks in pairs(authors) do
         table.insert(sorted_authors, {
+            text = author .. ' (' .. #tracks .. ')',
             name = author,
             tracks = tracks,
             count = #tracks
