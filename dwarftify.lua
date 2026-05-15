@@ -326,24 +326,15 @@ local function setGameTrack(id)
         dj_we_set_id = id
         dj_last_change_tick = dfhack.getTickCount()
         
-        -- Clear queue states
         m.neutral_card_queue:resize(0)
         m.planned_cards:resize(0)
-        m.queued_song = -1
-        m.planned_song = -1
-        m.queued_song_count = 0
+        m.queued_song = id
+        m.queued_song_count = 1
+        m.planned_song = id
         
-        -- Bypass the crossfade transition engine (which freezes while paused)
-        -- and force the song to play immediately.
-        m.song = id
         m.music_active = true
-        
-        -- Set duration to ~23 days (safe positive int32, no overflow to -1)
-        m.next_play_duration = 2000000000
-        
-        -- Clear any active fades
-        m.flags.fade_song_out = false
-        m.flags.fade_card_out = false
+        m.flags.fade_song_out = true
+        m.flags.fade_card_out = true
     end
 end
 
@@ -514,6 +505,7 @@ end
 Dwarftify = defclass(Dwarftify, gui.ZScreen)
 Dwarftify.ATTRS = {
     focus_path = 'dwarftify',
+    defocused = true,
 }
 
 function Dwarftify:init()
@@ -995,9 +987,13 @@ function Dwarftify:onRenderBody(dc)
             end
             
             local active_str = m.music_active and "Active" or "Inactive (Engine Override)"
+            if df.global.pause_state then
+                active_str = "Game Paused (Press Space to transition track!)"
+            end
+            
             local queue_str = #STATE.queue > 0 and ("Queue: " .. #STATE.queue .. " tracks") or "Queue Empty"
             stat_label:setText({
-                {text = string.char(14) .. " Engine: " .. active_str, pen = m.music_active and COLOR_LIGHTGREEN or COLOR_RED},
+                {text = string.char(14) .. " Engine: " .. active_str, pen = (m.music_active and not df.global.pause_state) and COLOR_LIGHTGREEN or COLOR_RED},
                 {text = "    " .. string.char(16) .. " " .. queue_str, pen = COLOR_YELLOW}
             })
         end
