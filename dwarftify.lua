@@ -869,26 +869,30 @@ function Dwarftify:updateFilters()
         end
     end
 
+    local queued_ids = {}
+    for _, t in ipairs(STATE.queue) do
+        queued_ids[t.id] = true
+    end
+
     local function makeTrackChoice(track, is_queue)
-        local heart = STATE.liked_songs[tostring(track.id)] and string.char(3) or ' '
-        if is_queue then
-            return {
-                text = {
-                    {text = heart .. ' ', pen = COLOR_LIGHTRED, dpen = COLOR_RED},
-                    {text = track.title, pen = COLOR_YELLOW, dpen = COLOR_GREY},
-                    {text = ' - ', pen = COLOR_GREY, dpen = COLOR_DARKGREY},
-                    {text = track.author, pen = COLOR_WHITE, dpen = COLOR_DARKGREY}
-                },
-                track = track,
-                search_key = track.title:lower() .. " " .. track.author:lower()
-            }
+        local is_liked = STATE.liked_songs[tostring(track.id)]
+        local is_queued = queued_ids[track.id]
+        local heart = is_liked and string.char(3) or ' '
+        
+        local title_pen = COLOR_WHITE
+        local author_pen = COLOR_CYAN
+        
+        if is_queue or is_queued then
+            title_pen = COLOR_YELLOW
+            author_pen = is_queue and COLOR_WHITE or COLOR_BROWN
         end
+
         return {
             text = {
                 {text = heart .. ' ', pen = COLOR_LIGHTRED, dpen = COLOR_RED},
-                {text = track.title, pen = COLOR_WHITE, dpen = COLOR_GREY},
+                {text = track.title, pen = title_pen, dpen = COLOR_GREY},
                 {text = ' - ', pen = COLOR_GREY, dpen = COLOR_DARKGREY},
-                {text = track.author, pen = COLOR_CYAN, dpen = COLOR_DARKGREY}
+                {text = track.author, pen = author_pen, dpen = COLOR_DARKGREY}
             },
             track = track,
             search_key = track.title:lower() .. " " .. track.author:lower()
