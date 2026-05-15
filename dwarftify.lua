@@ -332,8 +332,12 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        m.music_active = true
-        m.flags.fade_song_out = true
+        -- Force instant transition so the UI feels responsive even while paused
+        m.next_play_duration = 0
+        
+        if m.music_active then
+            m.flags.fade_song_out = true
+        end
         m.flags.fade_card_out = true
     end
 end
@@ -466,16 +470,12 @@ local function djMonitorLoop()
             local now = dfhack.getTickCount()
             local elapsed = now - dj_last_change_tick
 
-            if dj_we_set_id then
-                if current_song == dj_we_set_id then
-                    dj_last_song = current_song
-                    dj_last_change_tick = now
-                    dj_we_set_id = nil
-                else
-                    dj_last_song = current_song
-                    dj_last_change_tick = now
-                    dj_we_set_id = nil
-                end
+            if dj_we_set_id and current_song == dj_we_set_id then
+                m.music_active = true
+                m.next_play_duration = 2000000000
+                dj_last_song = current_song
+                dj_last_change_tick = now
+                dj_we_set_id = nil
             elseif elapsed >= DJ_COOLDOWN_MS then
                 dj_last_song = current_song
                 dj_last_change_tick = now
