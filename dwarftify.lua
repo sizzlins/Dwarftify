@@ -482,7 +482,6 @@ local function djMonitorLoop()
                 dj_we_set_id = nil
             elseif elapsed >= DJ_COOLDOWN_MS then
                 dj_last_song = current_song
-                dj_last_change_tick = now
                 playNextTrack()
             else
                 dj_last_song = current_song
