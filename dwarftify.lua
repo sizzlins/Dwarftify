@@ -531,6 +531,19 @@ function Dwarftify:init()
     loadConfig()
     pcall(dfhack.run_script, 'dwarftify-sync')
     self.library, self.authors = harvestMusic()
+    
+    -- Heal legacy truncated titles from persistent config
+    local lib_map = {}
+    for _, t in ipairs(self.library) do lib_map[t.id] = t end
+    for _, q in ipairs(STATE.queue) do
+        local lt = lib_map[q.id]
+        if lt then
+            q.title = lt.title
+            q.author = lt.author
+        end
+    end
+    saveConfig()
+    
     self.selected_author_idx = 1
     
     self:addviews{
