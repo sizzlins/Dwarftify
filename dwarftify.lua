@@ -905,16 +905,19 @@ function Dwarftify:updateFilters()
         
         local max_len = is_queue and 80 or 35
 
+        local title_chunk = {text = track.title, pen = title_pen, dpen = title_dpen}
+        
         return {
             text = {
                 {text = heart .. ' ', pen = COLOR_LIGHTRED, dpen = COLOR_RED},
-                {text = track.title, pen = title_pen, dpen = title_dpen},
+                title_chunk,
                 {text = ' - ', pen = COLOR_GREY, dpen = COLOR_DARKGREY},
                 {text = track.author, pen = author_pen, dpen = author_dpen}
             },
             track = track,
             max_len = max_len,
             raw_title = track.title,
+            title_chunk = title_chunk,
             search_key = track.title:lower() .. " " .. track.author:lower()
         }
     end
@@ -1075,12 +1078,20 @@ function Dwarftify:onRenderFrame(dc, rect)
     local tick = dfhack.getTickCount()
     local marquee_speed = 300 -- ms per character step
     
-    local active_list = self:getActiveList()
+    local active_list = nil
+    if STATE.active_tab == 1 then
+        active_list = (STATE.search_string ~= "") and self.subviews.list_search_tracks or self.subviews.list_browse_tracks
+    elseif STATE.active_tab == 2 then
+        active_list = self.subviews.list_queue
+    elseif STATE.active_tab == 3 then
+        active_list = self.subviews.list_liked
+    end
+
     if active_list then
         local choices = active_list:getChoices()
         if choices then
             for _, choice in ipairs(choices) do
-                if choice.raw_title and choice.max_len and #choice.raw_title > choice.max_len then
+                if choice.raw_title and choice.max_len and #choice.raw_title > choice.max_len and choice.title_chunk then
                     local overflow = #choice.raw_title - choice.max_len
                     -- Ping-pong marquee: wait at start, scroll, wait at end, scroll back
                     -- Adding 6 steps for waiting (3 at start, 3 at end)
@@ -1100,9 +1111,9 @@ function Dwarftify:onRenderFrame(dc, rect)
                         if offset < 0 then offset = 0 end
                     end
                     
-                    choice.text[2].text = choice.raw_title:sub(offset + 1, offset + choice.max_len)
-                elseif choice.raw_title then
-                    choice.text[2].text = choice.raw_title
+                    choice.title_chunk.text = choice.raw_title:sub(offset + 1, offset + choice.max_len)
+                elseif choice.raw_title and choice.title_chunk then
+                    choice.title_chunk.text = choice.raw_title
                 end
             end
         end
