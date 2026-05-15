@@ -28,10 +28,10 @@ dfhack.filesystem.mkdir_recursive(mod_dir)
 dfhack.filesystem.mkdir_recursive(sound_dir)
 dfhack.filesystem.mkdir_recursive(raw_dir)
 
--- Write mod info.txt
+local version = tostring(os.time())
 local info = io.open(mod_dir .. '/info.txt', 'w')
 if info then
-    info:write('[ID:dwarftify]\n[NUMERIC_VERSION:1]\n[DISPLAYED_VERSION:1.0]\n[EARLIEST_COMPATIBLE_NUMERIC_VERSION:1]\n[EARLIEST_COMPATIBLE_DISPLAYED_VERSION:1.0]\n[AUTHOR:Dwarftify]\n[NAME:Dwarftify Custom Music]\n[DESCRIPTION:Custom music tracks synced by Dwarftify.]\n')
+    info:write('[ID:dwarftify]\n[NUMERIC_VERSION:' .. version .. ']\n[DISPLAYED_VERSION:' .. version .. ']\n[EARLIEST_COMPATIBLE_NUMERIC_VERSION:1]\n[EARLIEST_COMPATIBLE_DISPLAYED_VERSION:1.0]\n[AUTHOR:Dwarftify]\n[NAME:Dwarftify Custom Music]\n[DESCRIPTION:Custom music tracks synced by Dwarftify.]\n')
     info:close()
 end
 
