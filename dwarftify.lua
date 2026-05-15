@@ -144,10 +144,23 @@ local function harvestMusic()
                 if is_custom then
                     title = custom_titles[raw.token]
                     if not title then
-                        -- Fallback for extremely old tokens that didn't use the hash system
-                        local nice = raw.token:gsub('^DWARFTIFY_', '')
-                        nice = nice:gsub('_%d+$', '')
-                        title = nice:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
+                        -- Fuzzy fallback for extremely old tokens that lacked hashes or were heavily truncated
+                        local stripped_token = raw.token:gsub('^DWARFTIFY_', ''):gsub('_', ''):lower()
+                        for k, v in pairs(custom_titles) do
+                            local stripped_k = k:gsub('^DWARFTIFY_', ''):gsub('_', ''):lower()
+                            -- Compare first 15 characters to guarantee a match
+                            if stripped_k:sub(1, 15) == stripped_token:sub(1, 15) then
+                                title = v
+                                break
+                            end
+                        end
+                        
+                        -- Ultimate fallback if file no longer exists on disk
+                        if not title then
+                            local nice = raw.token:gsub('^DWARFTIFY_', '')
+                            nice = nice:gsub('_%d+$', '')
+                            title = nice:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
+                        end
                     end
                 elseif raw.current_definition then
                     for j = 0, #raw.current_definition - 1 do
@@ -1042,6 +1055,7 @@ function Dwarftify:onRenderBody(dc)
             local stat_label = self.subviews.now_playing_status
             
             if display_id == -1 or display_id == 0 then
+                self._current_np_title = nil
                 np_label:setText({{text = "Now Playing: None (Silence)", pen = COLOR_GREY}})
             else
                 local title = "Track #" .. display_id
@@ -1053,12 +1067,9 @@ function Dwarftify:onRenderBody(dc)
                         break
                     end
                 end
-                np_label:setText({
-                    {text = "Now Playing: ", pen = COLOR_WHITE},
-                    {text = title, pen = COLOR_LIGHTGREEN},
-                    {text = author, pen = COLOR_CYAN},
-                    {text = " [ID:" .. display_id .. "]", pen = COLOR_DARKGREY}
-                })
+                self._current_np_title = title
+                self._current_np_author = author
+                self._current_np_id = display_id
             end
             
             local active_str = m.music_active and "Active" or "Inactive (Engine Override)"
@@ -1140,6 +1151,31 @@ function Dwarftify:onRenderFrame(dc, rect)
                 end
             end
         end
+    end
+    
+    local np_label = self.subviews.now_playing
+    if self._current_np_title and np_label then
+        local display_text = self._current_np_title
+        local max_np_len = 45
+        if #display_text > max_np_len then
+            local padded = display_text .. "   ***   "
+            local total_len = #padded
+            
+            local scroll_speed = 250 -- ms per char
+            local offset = math.floor(tick / scroll_speed) % total_len
+            
+            display_text = padded:sub(offset + 1, offset + max_np_len)
+            if #display_text < max_np_len then
+                display_text = display_text .. padded:sub(1, max_np_len - #display_text)
+            end
+        end
+        
+        np_label:setText({
+            {text = "Now Playing: ", pen = COLOR_WHITE},
+            {text = display_text, pen = COLOR_LIGHTGREEN},
+            {text = self._current_np_author or "", pen = COLOR_CYAN},
+            {text = " [ID:" .. (self._current_np_id or "") .. "]", pen = COLOR_DARKGREY}
+        })
     end
     
     Dwarftify.super.onRenderFrame(self, dc, rect)
