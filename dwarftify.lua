@@ -769,7 +769,7 @@ function Dwarftify:init()
                             on_activate = function()
                                 pcall(dfhack.run_script, 'dwarftify-sync')
                                 showToast(string.char(14) .. ' Mod Generated! Restart DF to play.')
-                                dfhack.gui.showAnnouncement("Dwarftify: Custom Mod Generated! Restart Dwarf Fortress to play.", COLOR_LIGHTCYAN, true)
+                                dfhack.gui.showAnnouncement("Dwarftify: Custom Mod Generated! Restart Dwarf Fortress to play.", COLOR_CYAN)
                                 self.library, self.authors = harvestMusic()
                                 self:updateFilters()
                             end,
