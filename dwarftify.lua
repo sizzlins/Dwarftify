@@ -109,9 +109,28 @@ local function harvestMusic()
 
     -- Ensure the custom music drop folder exists
     dfhack.filesystem.mkdir_recursive(CUSTOM_MUSIC_DIR)
-
-
     
+    local custom_titles = {}
+    local files = dfhack.filesystem.listdir_recursive(CUSTOM_MUSIC_DIR, 0)
+    if files then
+        for _, entry in ipairs(files) do
+            if not entry.isdir and entry.path then
+                local filename = entry.path:match('([^/\\]+)$') or entry.path
+                if filename:lower():match('%.ogg$') then
+                    local base_name = filename:match('^(.+)%.ogg$') or filename
+                    local safe_name = base_name:lower():gsub('[^%w_]', '_')
+                    if #safe_name > 10 then safe_name = safe_name:sub(1, 10) end
+                    
+                    local hash = 0
+                    for k = 1, #base_name do hash = (hash * 31 + string.byte(base_name, k)) % 10000 end
+                    
+                    local track_id = 'DWARFTIFY_' .. safe_name:upper() .. '_' .. string.format('%04d', hash)
+                    custom_titles[track_id] = base_name:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
+                end
+            end
+        end
+    end
+
     local raws_by_id = {}
     if df.global.world and df.global.world.raws and df.global.world.raws.music then
         local mall = df.global.world.raws.music.all
@@ -121,11 +140,15 @@ local function harvestMusic()
                 local title = formatVanillaName(raw.token)
                 local is_custom = raw.token:find('^DWARFTIFY_')
                 
-                -- For custom tracks, derive a nice title from the token name
+                -- For custom tracks, try to fetch the exact untruncated filename from disk
                 if is_custom then
-                    local nice = raw.token:gsub('^DWARFTIFY_', '')
-                    nice = nice:gsub('_%d+$', '') -- Strip the trailing hash from the sync script
-                    title = nice:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
+                    title = custom_titles[raw.token]
+                    if not title then
+                        -- Fallback for extremely old tokens that didn't use the hash system
+                        local nice = raw.token:gsub('^DWARFTIFY_', '')
+                        nice = nice:gsub('_%d+$', '')
+                        title = nice:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
+                    end
                 elseif raw.current_definition then
                     for j = 0, #raw.current_definition - 1 do
                         local ok2, def = pcall(function() return raw.current_definition[j].value end)
