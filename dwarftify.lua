@@ -340,7 +340,9 @@ end
 function playTrackNow(track)
     if not track then return end
     if track.id < 0 then
-        if track.author == 'Custom Music' then
+        if track.id == -1 then
+            dfhack.gui.showAnnouncement('Dwarftify: DF Audio Engine rejected this track. It may not be a valid .ogg file.', COLOR_LIGHTRED)
+        else
             dfhack.gui.showAnnouncement('Dwarftify: Custom tracks require a new world to play.', COLOR_LIGHTCYAN)
         end
         return
@@ -354,7 +356,9 @@ end
 function enqueueTrack(track)
     if not track then return end
     if track.id < 0 then
-        if track.author == 'Custom Music' then
+        if track.id == -1 then
+            dfhack.gui.showAnnouncement('Dwarftify: DF Audio Engine rejected this track. It may not be a valid .ogg file.', COLOR_LIGHTRED)
+        else
             dfhack.gui.showAnnouncement('Dwarftify: Custom tracks require a new world to play.', COLOR_LIGHTCYAN)
         end
         return
