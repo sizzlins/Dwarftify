@@ -332,6 +332,11 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
+        -- Setting a duration bypasses the paused simulation tick requirement for FMOD,
+        -- allowing the track to instantly transition while the game is paused. 
+        -- 2,000,000,000 is ~23 days, ensuring it never prematurely ends when unpaused.
+        m.next_play_duration = 2000000000
+        
         m.music_active = true
         m.flags.fade_song_out = true
         m.flags.fade_card_out = true
@@ -505,7 +510,6 @@ end
 Dwarftify = defclass(Dwarftify, gui.ZScreen)
 Dwarftify.ATTRS = {
     focus_path = 'dwarftify',
-    defocused = true,
 }
 
 function Dwarftify:init()
@@ -987,13 +991,10 @@ function Dwarftify:onRenderBody(dc)
             end
             
             local active_str = m.music_active and "Active" or "Inactive (Engine Override)"
-            if df.global.pause_state then
-                active_str = "Game Paused (Press Space to transition track!)"
-            end
             
             local queue_str = #STATE.queue > 0 and ("Queue: " .. #STATE.queue .. " tracks") or "Queue Empty"
             stat_label:setText({
-                {text = string.char(14) .. " Engine: " .. active_str, pen = (m.music_active and not df.global.pause_state) and COLOR_LIGHTGREEN or COLOR_RED},
+                {text = string.char(14) .. " Engine: " .. active_str, pen = m.music_active and COLOR_LIGHTGREEN or COLOR_RED},
                 {text = "    " .. string.char(16) .. " " .. queue_str, pen = COLOR_YELLOW}
             })
         end
