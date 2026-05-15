@@ -707,9 +707,11 @@ function Dwarftify:init()
                                 if not choice or not choice.track then return end
                                 local real_idx = choice.real_idx
                                 
-                                if real_idx and real_idx ~= 1 then
-                                    local track = table.remove(STATE.queue, real_idx)
-                                    table.insert(STATE.queue, 1, track)
+                                if real_idx and real_idx > 1 then
+                                    -- Skip to this track by deleting everything before it
+                                    for _ = 1, (real_idx - 1) do
+                                        table.remove(STATE.queue, 1)
+                                    end
                                 end
                                 
                                 local track = STATE.queue[1]
