@@ -705,13 +705,7 @@ function Dwarftify:init()
                             frame = {t = 0, l = 0, r = 0, b = 0},
                             on_submit = function(idx, choice) 
                                 if not choice or not choice.track then return end
-                                local real_idx = nil
-                                for i, t in ipairs(STATE.queue) do
-                                    if t.id == choice.track.id then
-                                        real_idx = i
-                                        break
-                                    end
-                                end
+                                local real_idx = choice.real_idx
                                 
                                 if real_idx and real_idx ~= 1 then
                                     local track = table.remove(STATE.queue, real_idx)
@@ -727,7 +721,8 @@ function Dwarftify:init()
                                 self:updateFilters()
                             end,
                             on_submit2 = function(idx, choice)
-                                table.remove(STATE.queue, idx)
+                                if not choice or not choice.real_idx then return end
+                                table.remove(STATE.queue, choice.real_idx)
                                 saveConfig()
                                 self:updateFilters()
                             end,
