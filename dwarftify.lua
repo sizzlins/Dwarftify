@@ -332,13 +332,29 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Force instant transition. This assigns 0 to the new track, which we will catch and fix in djMonitorLoop
+        -- Force instant transition. This sets the duration to 0.
         m.next_play_duration = 0
         
         if m.music_active then
             m.flags.fade_song_out = true
         end
         m.flags.fade_card_out = true
+        
+        -- Start a 1-tick polling loop to catch the transition the precise millisecond it happens
+        -- and apply the safety lock BEFORE the engine's main loop can kill the duration=0 track.
+        local tries = 0
+        local function pollTransition()
+            tries = tries + 1
+            if m.song == id then
+                m.music_active = true
+                m.next_play_duration = 2000000000
+                dj_last_song = id
+                dj_we_set_id = nil
+            elseif tries < 150 then -- Wait up to 3 seconds
+                dfhack.timeout(1, 'ticks', pollTransition)
+            end
+        end
+        pollTransition()
     end
 end
 
@@ -474,16 +490,7 @@ local function djMonitorLoop()
             local now = dfhack.getTickCount()
             local elapsed = now - dj_last_change_tick
 
-            if dj_we_set_id and current_song == dj_we_set_id then
-                m.music_active = true
-                m.next_play_duration = 2000000000
-                dj_last_song = current_song
-                dj_last_change_tick = now
-                dj_we_set_id = nil
-            elseif dj_we_set_id and current_song == -1 then
-                m.next_play_duration = 1
-                m.flags.fade_card_out = true
-            elseif elapsed >= DJ_COOLDOWN_MS then
+            if elapsed >= DJ_COOLDOWN_MS then
                 dj_last_song = current_song
                 playNextTrack()
             else
