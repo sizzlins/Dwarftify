@@ -683,7 +683,9 @@ function Dwarftify:init()
                                             on_submit2 = function(idx, choice) enqueueTrack(choice.track) end,
                                         }
                                     }
-                                },
+                                }
+                            }
+                        },
                                 -- FULL VIEW (When searching)
                                 widgets.Panel{
                                     view_id = 'panel_tracks_full',
