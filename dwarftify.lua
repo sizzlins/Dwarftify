@@ -392,7 +392,6 @@ local function setGameTrack(id)
             m.flags.fade_card_out = false
             m.flags.fade_song_out = false
             
-            dj_last_song = id
             dj_we_set_id = nil
         end)
     end
