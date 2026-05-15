@@ -332,28 +332,30 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Tell the engine to instantly kill whatever is currently playing
+        -- Tell the engine to instantly kill whatever is currently playing.
+        -- This natively triggers FMOD's hardcoded 3-second fade-out.
         m.next_play_duration = 0
         
-        -- Start an infinite frame-based polling loop that waits patiently for the engine to enter an interlude.
-        -- Once the engine is in an interlude, we inject our queued song and force the interlude to finish instantly.
-        -- This guarantees FMOD is ready and natively assigns the correct track length.
-        local function pollTransition()
-            if dj_we_set_id ~= id then return end -- Abort if the user clicked another track
+        -- We must wait for FMOD to finish its 3-second fade-out.
+        -- If we try to force a track instantly during the fade, FMOD will crash,
+        -- return 0 length, and cause the engine to instantly kill our new track (causing infinite queue popping).
+        -- We use 'frames' so the 3 seconds tick down even if the user leaves the UI paused.
+        dfhack.timeout(150, 'frames', function()
+            if dj_we_set_id ~= id then return end -- Abort if the user clicked another track during the wait
             
-            if m.song == -1 then
-                m.queued_song = id
-                m.planned_song = id
-                m.queued_song_count = 1
-                m.next_play_duration = 1
-                m.flags.fade_card_out = true
-                dj_last_song = id
-                dj_we_set_id = nil
-            else
-                dfhack.timeout(1, 'frames', pollTransition)
-            end
-        end
-        pollTransition()
+            m.queued_song = id
+            m.planned_song = id
+            m.queued_song_count = 1
+            m.next_play_duration = 1
+            
+            -- Do not use fade flags. This allows the engine to freeze the duration at 1 natively
+            -- until the FMOD audio file finishes playing, preserving flawless native auto-advance.
+            m.flags.fade_card_out = false
+            m.flags.fade_song_out = false
+            
+            dj_last_song = id
+            dj_we_set_id = nil
+        end)
     end
 end
 
