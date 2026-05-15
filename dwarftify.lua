@@ -320,6 +320,7 @@ local dj_last_change_tick = 0
 local DJ_COOLDOWN_MS = 3000
 
 local function setGameTrack(id)
+    if id < 0 then return end
     local m = df.global.musicsound
     if m then
         dj_we_set_id = id
