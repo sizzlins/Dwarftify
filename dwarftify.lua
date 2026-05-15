@@ -325,15 +325,25 @@ local function setGameTrack(id)
     if m then
         dj_we_set_id = id
         dj_last_change_tick = dfhack.getTickCount()
+        
+        -- Clear queue states
         m.neutral_card_queue:resize(0)
         m.planned_cards:resize(0)
-        m.queued_song = id
-        m.queued_song_count = 1
-        m.planned_song = id
+        m.queued_song = -1
+        m.planned_song = -1
+        m.queued_song_count = 0
         
+        -- Bypass the crossfade transition engine (which freezes while paused)
+        -- and force the song to play immediately.
+        m.song = id
         m.music_active = true
-        m.flags.fade_song_out = true
-        m.flags.fade_card_out = true
+        
+        -- Set duration to ~23 days (safe positive int32, no overflow to -1)
+        m.next_play_duration = 2000000000
+        
+        -- Clear any active fades
+        m.flags.fade_song_out = false
+        m.flags.fade_card_out = false
     end
 end
 
