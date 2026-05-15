@@ -1159,17 +1159,17 @@ function Dwarftify:onRenderFrame(dc, rect)
     if self._current_np_title and np_label then
         local display_text = self._current_np_title
         local max_np_len = 45
-        if #display_text > max_np_len then
-            local padded = display_text .. "   ***   "
-            local total_len = #padded
-            
-            local scroll_speed = 250 -- ms per char
-            local offset = math.floor(tick / scroll_speed) % total_len
-            
-            display_text = padded:sub(offset + 1, offset + max_np_len)
-            if #display_text < max_np_len then
-                display_text = display_text .. padded:sub(1, max_np_len - #display_text)
-            end
+        
+        -- Always pad and infinitely scroll, regardless of length
+        local padded = display_text .. "   ***   "
+        local total_len = #padded
+        
+        local scroll_speed = 250 -- ms per char
+        local offset = math.floor(tick / scroll_speed) % total_len
+        
+        display_text = padded:sub(offset + 1, offset + max_np_len)
+        if #display_text < max_np_len then
+            display_text = display_text .. padded:sub(1, max_np_len - #display_text)
         end
         
         np_label:setText({
