@@ -331,9 +331,6 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Tell engine to play this song indefinitely (until file ends or we override it)
-        m.next_play_duration = 4294967295 
-        
         m.music_active = true
         m.flags.fade_song_out = true
         m.flags.fade_card_out = true
