@@ -332,25 +332,24 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Trick the engine into bypassing the mandatory "song -> interlude" rule
-        if m.music_active then
-            m.flags.fade_song_out = true
-        end
-        m.music_active = false
-        m.flags.fade_card_out = true
-        
-        -- Force instant transition. This assigns 0 to the new track.
+        -- Tell the engine to instantly kill whatever is currently playing
         m.next_play_duration = 0
         
-        -- Start an infinite frame-based polling loop that waits patiently while the UI is paused.
-        -- The absolute microsecond the engine unpauses and transitions the song, it applies the safety lock.
+        -- Start an infinite frame-based polling loop that waits patiently for the engine to enter an interlude.
+        -- Once the engine is in an interlude, we inject our queued song and force the interlude to finish instantly.
+        -- This guarantees FMOD is ready and natively assigns the correct track length.
         local function pollTransition()
-            if m.song == id then
-                m.music_active = true
-                m.next_play_duration = 2000000000
+            if dj_we_set_id ~= id then return end -- Abort if the user clicked another track
+            
+            if m.song == -1 then
+                m.queued_song = id
+                m.planned_song = id
+                m.queued_song_count = 1
+                m.next_play_duration = 1
+                m.flags.fade_card_out = true
                 dj_last_song = id
                 dj_we_set_id = nil
-            elseif dj_we_set_id == id then
+            else
                 dfhack.timeout(1, 'frames', pollTransition)
             end
         end
