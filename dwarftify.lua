@@ -332,8 +332,8 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Force instant transition so the UI feels responsive even while paused
-        m.next_play_duration = 0
+        -- Force near-instant transition (using 1 instead of 0 prevents the engine from keeping duration=0 on the new track)
+        m.next_play_duration = 1
         
         if m.music_active then
             m.flags.fade_song_out = true
@@ -357,9 +357,9 @@ function playTrackNow(track)
     table.insert(STATE.queue, 1, track)
     
     saveConfig()
+    ensureMonitorRunning()
     setGameTrack(track.id)
     showToast(string.char(14) .. ' Playing: ' .. track.title)
-    ensureMonitorRunning()
 end
 
 function enqueueTrack(track)
@@ -475,8 +475,6 @@ local function djMonitorLoop()
             local elapsed = now - dj_last_change_tick
 
             if dj_we_set_id and current_song == dj_we_set_id then
-                m.music_active = true
-                m.next_play_duration = 2000000000
                 dj_last_song = current_song
                 dj_last_change_tick = now
                 dj_we_set_id = nil
@@ -655,9 +653,9 @@ function Dwarftify:init()
                                 
                                 local track = STATE.queue[1]
                                 saveConfig()
+                                ensureMonitorRunning()
                                 setGameTrack(track.id)
                                 showToast(string.char(14) .. ' Playing: ' .. track.title)
-                                ensureMonitorRunning()
                                 self:updateFilters()
                             end,
                             on_submit2 = function(idx, choice)
