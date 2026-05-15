@@ -332,8 +332,8 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Force near-instant transition (using 1 instead of 0 prevents the engine from keeping duration=0 on the new track)
-        m.next_play_duration = 1
+        -- Force instant transition. This assigns 0 to the new track, which we will catch and fix in djMonitorLoop
+        m.next_play_duration = 0
         
         if m.music_active then
             m.flags.fade_song_out = true
@@ -475,6 +475,8 @@ local function djMonitorLoop()
             local elapsed = now - dj_last_change_tick
 
             if dj_we_set_id and current_song == dj_we_set_id then
+                m.music_active = true
+                m.next_play_duration = 2000000000
                 dj_last_song = current_song
                 dj_last_change_tick = now
                 dj_we_set_id = nil
