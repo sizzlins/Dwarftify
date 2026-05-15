@@ -903,20 +903,18 @@ function Dwarftify:updateFilters()
             author_dpen = COLOR_DARKGREY
         end
         
-        local display_title = track.title
         local max_len = is_queue and 80 or 35
-        if #display_title > max_len then
-            display_title = display_title:sub(1, max_len - 3) .. '...'
-        end
 
         return {
             text = {
                 {text = heart .. ' ', pen = COLOR_LIGHTRED, dpen = COLOR_RED},
-                {text = display_title, pen = title_pen, dpen = title_dpen},
+                {text = track.title, pen = title_pen, dpen = title_dpen},
                 {text = ' - ', pen = COLOR_GREY, dpen = COLOR_DARKGREY},
                 {text = track.author, pen = author_pen, dpen = author_dpen}
             },
             track = track,
+            max_len = max_len,
+            raw_title = track.title,
             search_key = track.title:lower() .. " " .. track.author:lower()
         }
     end
@@ -1071,6 +1069,46 @@ function Dwarftify:getTrackUnderMouse()
         end
     end
     return nil, nil
+end
+
+function Dwarftify:onRenderFrame(dc, rect)
+    local tick = dfhack.getTickCount()
+    local marquee_speed = 300 -- ms per character step
+    
+    local active_list = self:getActiveList()
+    if active_list then
+        local choices = active_list:getChoices()
+        if choices then
+            for _, choice in ipairs(choices) do
+                if choice.raw_title and choice.max_len and #choice.raw_title > choice.max_len then
+                    local overflow = #choice.raw_title - choice.max_len
+                    -- Ping-pong marquee: wait at start, scroll, wait at end, scroll back
+                    -- Adding 6 steps for waiting (3 at start, 3 at end)
+                    local cycle_steps = (overflow * 2) + 6
+                    local cycle_time = cycle_steps * marquee_speed
+                    local phase = math.floor((tick % cycle_time) / marquee_speed)
+                    
+                    local offset = 0
+                    if phase < 3 then
+                        offset = 0 -- Pause at start
+                    elseif phase < 3 + overflow then
+                        offset = phase - 3 -- Scroll right
+                    elseif phase < 6 + overflow then
+                        offset = overflow -- Pause at end
+                    else
+                        offset = overflow - (phase - (6 + overflow)) -- Scroll left (rewind)
+                        if offset < 0 then offset = 0 end
+                    end
+                    
+                    choice.text[2].text = choice.raw_title:sub(offset + 1, offset + choice.max_len)
+                elseif choice.raw_title then
+                    choice.text[2].text = choice.raw_title
+                end
+            end
+        end
+    end
+    
+    Dwarftify.super.onRenderFrame(self, dc, rect)
 end
 
 function Dwarftify:onInput(keys)
