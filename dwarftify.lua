@@ -355,6 +355,7 @@ local dj_last_song = nil
 local dj_we_set_id = nil
 local dj_last_change_tick = 0
 local dj_ignore_next_transition = false
+local last_submit_tick = 0
 
 local function setGameTrack(id)
     if id < 0 then return end
@@ -670,8 +671,6 @@ function Dwarftify:init()
                                     frame_style = gui.FRAME_INTERIOR,
                                     frame_title = '  Tracks',
                                     subviews = {
-local last_submit_tick = 0
-
                                         widgets.FilteredList{
                                             view_id = 'list_browse_tracks',
                                             frame = {t = 0, l = 0, r = 0, b = 0},
