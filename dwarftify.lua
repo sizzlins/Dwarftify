@@ -332,26 +332,26 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Force instant transition. This sets the duration to 0.
-        m.next_play_duration = 0
-        
+        -- Trick the engine into bypassing the mandatory "song -> interlude" rule
         if m.music_active then
             m.flags.fade_song_out = true
         end
+        m.music_active = false
         m.flags.fade_card_out = true
         
-        -- Start a 1-tick polling loop to catch the transition the precise millisecond it happens
-        -- and apply the safety lock BEFORE the engine's main loop can kill the duration=0 track.
-        local tries = 0
+        -- Force instant transition. This assigns 0 to the new track.
+        m.next_play_duration = 0
+        
+        -- Start an infinite frame-based polling loop that waits patiently while the UI is paused.
+        -- The absolute microsecond the engine unpauses and transitions the song, it applies the safety lock.
         local function pollTransition()
-            tries = tries + 1
             if m.song == id then
                 m.music_active = true
                 m.next_play_duration = 2000000000
                 dj_last_song = id
                 dj_we_set_id = nil
-            elseif tries < 150 then -- Wait up to 3 seconds
-                dfhack.timeout(1, 'ticks', pollTransition)
+            elseif dj_we_set_id == id then
+                dfhack.timeout(1, 'frames', pollTransition)
             end
         end
         pollTransition()
