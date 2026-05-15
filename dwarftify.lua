@@ -331,9 +331,9 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         m.next_play_duration = 0
-        if m.music_active then
-            m.flags.fade_song_out = true
-        end
+        
+        m.music_active = true
+        m.flags.fade_song_out = true
         m.flags.fade_card_out = true
     end
 end
