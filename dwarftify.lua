@@ -880,19 +880,23 @@ function Dwarftify:updateFilters()
         local heart = is_liked and string.char(3) or ' '
         
         local title_pen = COLOR_WHITE
+        local title_dpen = COLOR_GREY
         local author_pen = COLOR_CYAN
+        local author_dpen = COLOR_DARKGREY
         
         if is_queue or is_queued then
             title_pen = COLOR_YELLOW
+            title_dpen = COLOR_BROWN
             author_pen = is_queue and COLOR_WHITE or COLOR_BROWN
+            author_dpen = COLOR_DARKGREY
         end
 
         return {
             text = {
                 {text = heart .. ' ', pen = COLOR_LIGHTRED, dpen = COLOR_RED},
-                {text = track.title, pen = title_pen, dpen = COLOR_GREY},
+                {text = track.title, pen = title_pen, dpen = title_dpen},
                 {text = ' - ', pen = COLOR_GREY, dpen = COLOR_DARKGREY},
-                {text = track.author, pen = author_pen, dpen = COLOR_DARKGREY}
+                {text = track.author, pen = author_pen, dpen = author_dpen}
             },
             track = track,
             search_key = track.title:lower() .. " " .. track.author:lower()
