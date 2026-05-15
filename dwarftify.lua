@@ -409,7 +409,10 @@ function playTrackNow(track)
     end
     
     -- Sync the queue by making this track the active one at the top
-    table.insert(STATE.queue, 1, track)
+    -- Prevent duplicate inserts if the user double-clicks (very common for music players)
+    if not STATE.queue[1] or STATE.queue[1].id ~= track.id then
+        table.insert(STATE.queue, 1, track)
+    end
     
     saveConfig()
     if GLOBAL_DWARFTIFY_SCREEN then GLOBAL_DWARFTIFY_SCREEN:updateFilters() end
