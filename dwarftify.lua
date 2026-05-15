@@ -753,12 +753,20 @@ function Dwarftify:init()
                             label = function() return 'Repeat: ' .. STATE.repeat_mode:upper() end,
                             on_activate = function() toggleRepeat(); self:updateFilters() end,
                         },
-                        widgets.Label{
+                        widgets.HotkeyLabel{
                             view_id = 'sync_button',
-                            frame = {t = 4, l = 80, w = 30},
-                            text = 'Shift+S: Sync Custom Music',
+                            frame = {t = 4, l = 75, w = 30},
+                            key = 'CUSTOM_SHIFT_S',
+                            label = 'Sync Custom Music',
                             text_pen = COLOR_LIGHTCYAN,
                             visible = false,
+                            on_activate = function()
+                                pcall(dfhack.run_script, 'dwarftify-sync')
+                                showToast(string.char(14) .. ' Mod Generated! Restart DF to play.')
+                                dfhack.gui.showAnnouncement("Dwarftify: Custom Mod Generated! Restart Dwarf Fortress to play.", COLOR_LIGHTCYAN, true)
+                                self.library, self.authors = harvestMusic()
+                                self:updateFilters()
+                            end,
                         },
                     },
                 },
@@ -1038,15 +1046,7 @@ function Dwarftify:onInput(keys)
         if next_tab > 3 then next_tab = 1 end
         self:switchTab(next_tab)
         return true
-    elseif keys.CUSTOM_SHIFT_S then
-        local author_data = self.authors[self.selected_author_idx]
-        if STATE.active_tab == 1 and author_data and author_data.name == 'Custom Music' then
-            pcall(dfhack.run_script, 'dwarftify-sync')
-            showToast(string.char(14) .. ' Mod Generated! Restart DF to play.')
-            self.library, self.authors = harvestMusic()
-            self:updateFilters()
-            return true
-        end
+
     elseif keys._STRING == 49 then -- '1'
         self:switchTab(1)
         return true
