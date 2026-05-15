@@ -1,7 +1,16 @@
--- Dwarftify Custom Music Sync Helper
--- Scans dfhack-config/dwarftify/custom_music/ for .ogg files
--- and injects them into the in-memory music raws
+-- Synchronizes custom .ogg files into the Dwarftify music player.
+--[====[
 
+dwarftify-sync
+==============
+Scans the `dfhack-config/dwarftify/custom_music/` directory for `.ogg` files and dynamically
+injects them into the game's in-memory music structures. 
+
+It also generates a local Dwarf Fortress mod (`Dwarftify Custom Music`) containing the 
+raw text files required for the engine to natively parse your custom audio tracks upon 
+the creation of a new world.
+
+]====]
 local CUSTOM_MUSIC_DIR = 'dfhack-config/dwarftify/custom_music'
 dfhack.filesystem.mkdir_recursive(CUSTOM_MUSIC_DIR)
 
