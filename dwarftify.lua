@@ -126,7 +126,6 @@ local function harvestMusic()
                     local nice = raw.token:gsub('^DWARFTIFY_', '')
                     nice = nice:gsub('_%d+$', '') -- Strip the trailing hash from the sync script
                     title = nice:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
-                    if #title > 40 then title = title:sub(1, 37) .. '...' end
                 elseif raw.current_definition then
                     for j = 0, #raw.current_definition - 1 do
                         local ok2, def = pcall(function() return raw.current_definition[j].value end)
@@ -890,11 +889,17 @@ function Dwarftify:updateFilters()
             author_pen = is_queue and COLOR_WHITE or COLOR_BROWN
             author_dpen = COLOR_DARKGREY
         end
+        
+        local display_title = track.title
+        local max_len = is_queue and 80 or 35
+        if #display_title > max_len then
+            display_title = display_title:sub(1, max_len - 3) .. '...'
+        end
 
         return {
             text = {
                 {text = heart .. ' ', pen = COLOR_LIGHTRED, dpen = COLOR_RED},
-                {text = track.title, pen = title_pen, dpen = title_dpen},
+                {text = display_title, pen = title_pen, dpen = title_dpen},
                 {text = ' - ', pen = COLOR_GREY, dpen = COLOR_DARKGREY},
                 {text = track.author, pen = author_pen, dpen = author_dpen}
             },
