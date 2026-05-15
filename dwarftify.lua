@@ -354,7 +354,7 @@ local monitor_running = false
 local dj_last_song = nil
 local dj_we_set_id = nil
 local dj_last_change_tick = 0
-local DJ_COOLDOWN_MS = 3000
+local dj_ignore_next_transition = false
 
 local function setGameTrack(id)
     if id < 0 then return end
@@ -362,6 +362,7 @@ local function setGameTrack(id)
     if m then
         dj_we_set_id = id
         dj_last_change_tick = dfhack.getTickCount()
+        dj_ignore_next_transition = true
         
         m.neutral_card_queue:resize(0)
         m.planned_cards:resize(0)
@@ -517,6 +518,8 @@ end
 -- ===========================
 -- Background DJ Monitor
 -- ===========================
+local DJ_COOLDOWN_MS = 3000
+
 local function djMonitorLoop()
     if not monitor_running then return end
     if not dfhack.isWorldLoaded() then monitor_running = false; return end
@@ -526,6 +529,12 @@ local function djMonitorLoop()
         local current_song = m.song
 
         if current_song ~= dj_last_song then
+            if dj_ignore_next_transition then
+                dj_ignore_next_transition = false
+                dj_last_song = current_song
+                return
+            end
+            
             local now = dfhack.getTickCount()
             local elapsed = now - dj_last_change_tick
 
@@ -537,8 +546,7 @@ local function djMonitorLoop()
             end
         end
     end
-
-    dfhack.timeout(5, 'frames', djMonitorLoop)
+    dfhack.timeout(1, 'frames', djMonitorLoop)
 end
 
 function ensureMonitorRunning()
@@ -707,11 +715,9 @@ function Dwarftify:init()
                                 if not choice or not choice.track then return end
                                 local real_idx = choice.real_idx
                                 
-                                if real_idx and real_idx > 1 then
-                                    -- Skip to this track by deleting everything before it
-                                    for _ = 1, (real_idx - 1) do
-                                        table.remove(STATE.queue, 1)
-                                    end
+                                if real_idx and real_idx ~= 1 then
+                                    local track = table.remove(STATE.queue, real_idx)
+                                    table.insert(STATE.queue, 1, track)
                                 end
                                 
                                 local track = STATE.queue[1]
