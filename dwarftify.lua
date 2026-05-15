@@ -119,11 +119,12 @@ local function harvestMusic()
             local raw = mall[i]
             if raw then
                 local title = formatVanillaName(raw.token)
-                local is_custom = raw.token:find('DWARFTIFY_CUSTOM')
+                local is_custom = raw.token:find('^DWARFTIFY_')
                 
                 -- For custom tracks, derive a nice title from the token name
                 if is_custom then
-                    local nice = raw.token:gsub('^DWARFTIFY_CUSTOM_', '')
+                    local nice = raw.token:gsub('^DWARFTIFY_', '')
+                    nice = nice:gsub('_%d+$', '') -- Strip the trailing hash from the sync script
                     title = nice:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
                     if #title > 40 then title = title:sub(1, 37) .. '...' end
                 elseif raw.current_definition then
