@@ -325,20 +325,15 @@ local function setGameTrack(id)
     if m then
         dj_we_set_id = id
         dj_last_change_tick = dfhack.getTickCount()
-        
         m.neutral_card_queue:resize(0)
         m.planned_cards:resize(0)
         m.queued_song = id
         m.queued_song_count = 1
         m.planned_song = id
-        
-        -- Setting a duration bypasses the paused simulation tick requirement for FMOD,
-        -- allowing the track to instantly transition while the game is paused. 
-        -- 2,000,000,000 is ~23 days, ensuring it never prematurely ends when unpaused.
-        m.next_play_duration = 2000000000
-        
-        m.music_active = true
-        m.flags.fade_song_out = true
+        m.next_play_duration = 0
+        if m.music_active then
+            m.flags.fade_song_out = true
+        end
         m.flags.fade_card_out = true
     end
 end
