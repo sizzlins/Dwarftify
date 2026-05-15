@@ -671,32 +671,42 @@ function Dwarftify:init()
                                     frame_style = gui.FRAME_INTERIOR,
                                     frame_title = '  Tracks',
                                     subviews = {
+local last_submit_tick = 0
+
                                         widgets.FilteredList{
                                             view_id = 'list_browse_tracks',
                                             frame = {t = 0, l = 0, r = 0, b = 0},
-                                            on_submit = function(idx, choice) playTrackNow(choice.track) end,
+                                            on_submit = function(idx, choice)
+                                                local now = dfhack.getTickCount()
+                                                if now - last_submit_tick < 500 then return end
+                                                last_submit_tick = now
+                                                playTrackNow(choice.track) 
+                                            end,
+                                            on_submit2 = function(idx, choice) enqueueTrack(choice.track) end,
+                                        }
+                                    }
+                                },
+                                -- FULL VIEW (When searching)
+                                widgets.Panel{
+                                    view_id = 'panel_tracks_full',
+                                    frame = {t = 0, l = 0, r = 0, b = 0},
+                                    frame_style = gui.FRAME_INTERIOR,
+                                    frame_title = '  Global Search Results',
+                                    visible = function() return STATE.search_string ~= "" end,
+                                    subviews = {
+                                        widgets.FilteredList{
+                                            view_id = 'list_search_tracks',
+                                            frame = {t = 0, l = 0, r = 0, b = 0},
+                                            on_submit = function(idx, choice)
+                                                local now = dfhack.getTickCount()
+                                                if now - last_submit_tick < 500 then return end
+                                                last_submit_tick = now
+                                                playTrackNow(choice.track) 
+                                            end,
                                             on_submit2 = function(idx, choice) enqueueTrack(choice.track) end,
                                         }
                                     }
                                 }
-                            }
-                        },
-                        -- FULL VIEW (When searching)
-                        widgets.Panel{
-                            view_id = 'panel_tracks_full',
-                            frame = {t = 0, l = 0, r = 0, b = 0},
-                            frame_style = gui.FRAME_INTERIOR,
-                            frame_title = '  Global Search Results',
-                            visible = function() return STATE.search_string ~= "" end,
-                            subviews = {
-                                widgets.FilteredList{
-                                    view_id = 'list_search_tracks',
-                                    frame = {t = 0, l = 0, r = 0, b = 0},
-                                    on_submit = function(idx, choice) playTrackNow(choice.track) end,
-                                    on_submit2 = function(idx, choice) enqueueTrack(choice.track) end,
-                                }
-                            }
-                        }
                     }
                 },
 
@@ -712,6 +722,10 @@ function Dwarftify:init()
                             view_id = 'list_queue',
                             frame = {t = 0, l = 0, r = 0, b = 0},
                             on_submit = function(idx, choice) 
+                                local now = dfhack.getTickCount()
+                                if now - last_submit_tick < 500 then return end
+                                last_submit_tick = now
+
                                 if not choice or not choice.track then return end
                                 local real_idx = choice.real_idx
                                 
