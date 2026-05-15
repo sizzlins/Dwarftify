@@ -369,9 +369,10 @@ local function setGameTrack(id)
         m.queued_song_count = 1
         m.planned_song = id
         
-        -- Tell the engine to instantly kill whatever is currently playing.
+        -- Tell the engine to instantly kill whatever is currently playing (songs or interlude cards).
         -- This natively triggers FMOD's hardcoded 3-second fade-out.
         m.next_play_duration = 0
+        if m.card_duration then m.card_duration = 0 end
         
         -- We must wait for FMOD to finish its 3-second fade-out.
         -- If we try to force a track instantly during the fade, FMOD will crash,
