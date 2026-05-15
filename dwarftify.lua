@@ -111,6 +111,7 @@ local function harvestMusic()
     dfhack.filesystem.mkdir_recursive(CUSTOM_MUSIC_DIR)
     
     local custom_titles = {}
+    local custom_basenames = {}
     local files = dfhack.filesystem.listdir_recursive(CUSTOM_MUSIC_DIR, 0)
     if files then
         for _, entry in ipairs(files) do
@@ -126,6 +127,7 @@ local function harvestMusic()
                     
                     local track_id = 'DWARFTIFY_' .. safe_name:upper() .. '_' .. string.format('%04d', hash)
                     custom_titles[track_id] = base_name:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
+                    table.insert(custom_basenames, base_name)
                 end
             end
         end
@@ -146,11 +148,11 @@ local function harvestMusic()
                     if not title then
                         -- Fuzzy fallback for extremely old tokens that lacked hashes or were heavily truncated
                         local stripped_token = raw.token:gsub('^DWARFTIFY_', ''):gsub('_', ''):lower()
-                        for k, v in pairs(custom_titles) do
-                            local stripped_k = k:gsub('^DWARFTIFY_', ''):gsub('_', ''):lower()
+                        for _, base_name in ipairs(custom_basenames) do
+                            local stripped_base = base_name:gsub('[^%w]', ''):lower()
                             -- Compare first 15 characters to guarantee a match
-                            if stripped_k:sub(1, 15) == stripped_token:sub(1, 15) then
-                                title = v
+                            if stripped_base:sub(1, 15) == stripped_token:sub(1, 15) then
+                                title = base_name:gsub('_', ' '):gsub('(%w)(%w*)', function(a, b) return a:upper() .. b:lower() end)
                                 break
                             end
                         end
