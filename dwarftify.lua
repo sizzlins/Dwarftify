@@ -352,6 +352,10 @@ function playTrackNow(track)
         end
         return
     end
+    
+    -- Sync the queue by making this track the active one at the top
+    table.insert(STATE.queue, 1, track)
+    
     saveConfig()
     setGameTrack(track.id)
     showToast(string.char(14) .. ' Playing: ' .. track.title)
