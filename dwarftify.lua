@@ -480,6 +480,9 @@ local function djMonitorLoop()
                 dj_last_song = current_song
                 dj_last_change_tick = now
                 dj_we_set_id = nil
+            elseif dj_we_set_id and current_song == -1 then
+                m.next_play_duration = 1
+                m.flags.fade_card_out = true
             elseif elapsed >= DJ_COOLDOWN_MS then
                 dj_last_song = current_song
                 playNextTrack()
