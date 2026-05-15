@@ -374,6 +374,7 @@ function playTrackNow(track)
     table.insert(STATE.queue, 1, track)
     
     saveConfig()
+    if GLOBAL_DWARFTIFY_SCREEN then GLOBAL_DWARFTIFY_SCREEN:updateFilters() end
     ensureMonitorRunning()
     setGameTrack(track.id)
     showToast(string.char(14) .. ' Playing: ' .. track.title)
@@ -392,6 +393,7 @@ function enqueueTrack(track)
     table.insert(STATE.queue, track)
     saveConfig()
     showToast(string.char(14) .. ' Added to Queue: ' .. track.title)
+    if GLOBAL_DWARFTIFY_SCREEN then GLOBAL_DWARFTIFY_SCREEN:updateFilters() end
     ensureMonitorRunning()
 end
 
@@ -424,6 +426,7 @@ function playNextTrack()
         
         local next_track = STATE.queue[1]
         saveConfig()
+        if GLOBAL_DWARFTIFY_SCREEN then GLOBAL_DWARFTIFY_SCREEN:updateFilters() end
         
         if next_track then
             setGameTrack(next_track.id)
@@ -522,7 +525,10 @@ Dwarftify.ATTRS = {
     defocused = true,
 }
 
+GLOBAL_DWARFTIFY_SCREEN = nil
+
 function Dwarftify:init()
+    GLOBAL_DWARFTIFY_SCREEN = self
     loadConfig()
     pcall(dfhack.run_script, 'dwarftify-sync')
     self.library, self.authors = harvestMusic()
@@ -666,6 +672,7 @@ function Dwarftify:init()
                                 
                                 local track = STATE.queue[1]
                                 saveConfig()
+                                self:updateFilters()
                                 ensureMonitorRunning()
                                 setGameTrack(track.id)
                                 showToast(string.char(14) .. ' Playing: ' .. track.title)
@@ -797,6 +804,10 @@ function Dwarftify:init()
     
     self:updateFilters()
     ensureMonitorRunning()
+end
+
+function Dwarftify:onDestroy()
+    GLOBAL_DWARFTIFY_SCREEN = nil
 end
 
 function Dwarftify:switchTab(tab_idx)
