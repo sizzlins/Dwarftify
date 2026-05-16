@@ -573,7 +573,6 @@ GLOBAL_DWARFTIFY_SCREEN = nil
 function Dwarftify:init()
     GLOBAL_DWARFTIFY_SCREEN = self
     loadConfig()
-    pcall(dfhack.run_script, 'dwarftify-sync')
     self.library, self.authors = harvestMusic()
     
     -- Heal legacy truncated titles from persistent config
