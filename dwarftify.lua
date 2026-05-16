@@ -925,7 +925,7 @@ function Dwarftify:updateFilters()
             local author_data = self.authors[self.selected_author_idx]
             local is_custom = author_data and author_data.name == 'Custom Music'
             if is_custom and STATE.active_tab == 1 and STATE.search_string == '' then
-                self.subviews.footer_instructions:setText("[Enter] Play Now  |  [Shift+Enter] Add to Queue  |  [Shift+S] Sync Custom Music")
+                self.subviews.footer_instructions:setText("[Enter] Play Now  |  [Shift+Enter] Add to Queue  |  [T] Switch View")
                 if self.subviews.sync_button then self.subviews.sync_button.visible = true end
             else
                 self.subviews.footer_instructions:setText("[Enter] Play Now  |  [Shift+Enter] Add to Queue  |  [T] Switch View")
